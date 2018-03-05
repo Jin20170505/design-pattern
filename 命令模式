@@ -1,0 +1,132 @@
+设计模式之三：命令模式
+	定义：
+		将一个请求封装成一个对象，从而让你使用不同的请求把客户端参数化，对请求排队或者记录请求日志，可以提供命令的撤销和恢复功能。
+	目的：
+		命令发送者与命令执行者解耦；
+	过程：
+		请求方发出请求，要求执行操作；接收方收到请求，并执行操作。
+	角色：
+		抽象命令
+		具体命令
+		接收者(Receiver)：执行命令
+		命令调用者(Invoker)
+		
+	示例：
+		饭店点菜
+	code:
+	
+		public interface ICommand{
+			
+			public void execute();
+		}
+		// 牛肉面
+		public class BeefNoodles implements ICommand{
+			
+			private IReceiver receiver;
+			
+			public BeefNoodles(IReceiver receiver){
+				this.receiver = receiver;
+			}
+			
+			public void execute(){
+				System.out.print(receiver.name +":");
+				receiver.doSomething();
+			}
+		}
+		// 小炒菜
+		public class SmallFry implements ICommand{
+			
+			private IReceiver receiver;
+			
+			public SmallFry(IReceiver receiver){
+				this.receiver = receiver;
+			}
+			
+			public void execute(){
+				System.out.print(receiver.name +":");
+				receiver.doSomething();
+			}
+		}
+		// 烧饼
+		public class ShaoBing implements ICommand{
+			
+			private IReceiver receiver;
+			
+			public ShaoBing(IReceiver receiver){
+				this.receiver = receiver;
+			}
+			
+			public void execute(){
+				System.out.print(receiver.name +":");
+				receiver.doSomething();
+			}
+		}
+		public abstract class IReceiver{
+			protected String name;
+			public abstract void doSomething();
+		}
+		
+		public class BeefNoodlesReceiver extends IReceiver{
+			public BeefNoodlesReceiver(String name){
+				this.name = name;
+			}
+			public void doSomething(){
+				System.out.println("牛肉面正在做。。。。。");
+			}
+		}
+		
+		public class SmallFryReceiver extends IReceiver{
+			public SmallFryReceiver(String name){
+				this.name = name;
+			}
+			public void doSomething(){
+				System.out.println("小炒菜正在做。。。。。");
+			}
+		}
+		public class ShaoBingReceiver extends IReceiver{
+			public ShaoBingReceiver(String name){
+				this.name = name;
+			}
+			public void doSomething(){
+				System.out.println("烧饼正在做。。。。。");
+			}
+		}
+		// 服务员 传菜员
+		public class Invoker {
+			private String name;
+			public Invoker(String name){
+				this.name = name;
+			}
+			private List<ICommand> commands = new ArraryList<ICommand>();
+			public void addCommand(ICommand command){
+				commands.add(command);
+			}
+			public void cancelCommand(ICommand command){
+				commands.remove(command);
+			}
+			public void invoker(){
+				for(ICommand command:commands){
+					command.execute();
+				}
+			}
+		}
+		
+		public class MainTest{
+			public static void main(String[] args){
+				IReceiver beefNoodlesReceiver = new BeefNoodlesReceiver("小明"),
+				          smallFryReceiver = new SmallFryReceiver("小哎"),
+						  shaobinReceiver = new ShaoBingReceiver("小文");
+				
+				// 配备厨师
+				ICommand beefNoodles = new BeefNoodles(beefNoodlesReceiver),
+						 smallFry = new SmallFry(smallFryReceiver),
+						 shaobin = new ShaoBing(shaobinReceiver); 
+				// 客户点菜
+				Invoker invoker = new Invoker("小红");
+				invoker.addCommand(beefNoodles);
+				invoker.addCommand(smallFry);
+				
+				invoker.invoker();
+			}
+		}
+		
