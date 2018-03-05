@@ -1,0 +1,154 @@
+设计模式之二:工厂模式
+
+基本知识：
+		需要生成的对象叫做产品 ，生成对象的地方叫做工厂 。
+	何处使用：
+		在任何需要生成复杂对象的地方，都可以使用工厂方法模式。 
+		直接用new可以完成的不需要用工厂模式。
+	
+	
+	1.简单(静态)工厂模式:
+		特点
+			1 它是一个具体的类，非接口 抽象类。有一个重要的create()方法，利用if或者 switch创建产品并返回。
+			2 create()方法通常是静态的，所以也称之为静态工厂。
+		缺点
+			1 扩展性差（我想增加一种面条，除了新增一个面条产品类，还需要修改工厂类方法）
+			2 不同的产品需要不同额外参数的时候 不支持。
+		简单工厂code:
+			public abstract class Car{
+				public abstract void type();
+			}
+			public class SmallCar extends Car {
+				public void type(){
+					System.out.println("small car");
+				}
+			}
+			
+			public class BigCar extends Car {
+				public void type(){
+					System.out.println("big car");
+				}
+			}
+			public class SuperCar extends Car {
+				public void type(){
+					System.out.println(" car");
+				}
+			}
+			
+			public class SimpleFactory{
+				public static Car createCar(int type){
+					Car car = null;
+					switch(type){
+						case 1:
+							car = new SmallCar();
+						break;
+						case 2:
+							car = new BigCar();
+						break;
+						case 3:
+							car = new SuperCar();
+						break;
+					}
+					return car;
+				}
+			}
+	2.工厂方法模式:
+		把简单工厂中具体的工厂类，划分成两层：抽象工厂层+具体的工厂子类层。(一般->特殊)
+		定义一个用于创建对象的接口，让子类决定实例化哪一个类。工厂方法使一个类的实例化延迟到其子类。
+		
+		code:
+		product:
+			public interface Car {
+				public void price();
+			}
+			public class SmallCar implements Car{
+				public void price(){
+					System.out.println("small :" + 100000);
+				}
+			}
+			public class BigCar implements Car{
+				public void price(){
+					System.out.println("big :" + 200000);
+				}
+			}
+			public class SuperCar implements Car{
+				public void price(){
+					System.out.println("super :" + 300000);
+				}
+			}
+		factory:
+			public interface ICarFactory{
+				public Car create();
+			}
+			public class SmallCarFactory implements ICarFactory{
+				public Car create(){
+					return new SmallCar();
+				}
+			}
+			public class BigCarFactory implements ICarFactory{
+				public Car create(){
+					return new BigCars();
+				}
+			}
+			public class SuperCarFactory implements ICarFactory{
+				public Car create(){
+					return new SuperCar();
+				}
+			}
+		总结：
+			和简单工厂模式相比，这个更加能体现面向对象，并且在新增产品时，不需要修改原来的class
+			遵守了‘开放-封闭’原则。实现了客户端和对象创建的解耦。
+			但是每创建一个产品就需创建一个工厂，增加了开发量。
+			
+			
+	3.抽象工厂模式:
+		提供一个创建一系列相关或相互依赖对象的接口，而不需要指定它们具体的类。(生产一系列产品)
+		
+		产品族（Product Family）。所谓产品族，是指位于不同产品等级结构，功能相关联的产品组成的家族.
+		抽象工厂是指一个工厂等级结构可以创建出分属于不同产品等级结构的一个产品族中的所有对象。
+
+		在以下情况下应当考虑使用抽象工厂模式：
+			一个系统不应当依赖于产品类实例如何被创建、组合和表达的细节，这对于所有形态的工厂模式都是重要的。 
+			这个系统有多于一个的产品族，而系统只消费其中某一产品族。 
+			同属于同一个产品族的产品是在一起使用的，这一约束必须在系统的设计中体现出来。 
+			系统提供一个产品类的库，所有的产品以同样的接口出现，从而使客户端不依赖于实现。
+		code:
+			product:															factory
+			// 产品1：水果															// 抽象工厂
+			public abstract class Fruit{											public interface IFactory{
+				public abstract void getName();											Fruit createFruit();
+			}																			ITea createTea();
+			public class Apple extends Fruit{										}
+				public void getName(){												
+					System.out.println("I am Apple !");								public class Shop001 implements IFactory{
+				}																		public Fruit createFruit(){
+			}																				return new Banana();
+			public class Banana extends Fruit{											}
+				public void getName(){													public ITea createTea(){
+					System.out.println("I am Banana !");									return new BlackTea();
+				}																		}
+			}																		}
+			public class Orange extends Fruit{
+				public void getName(){
+					System.out.println("I am Orange !");							public class Shop002 implements IFactory{
+				}																		public Fruit createFruit(){
+			}																				return new new Orange();
+			// 产品2：饮品																}
+			public interface ITea{														public ITea createTea(){
+				void price();																return new Cocoa();
+			}																			}
+			public class BlackTea implements ITea{									}
+				public void price(){
+					System.out.println("The BlackTea is $2");						................................
+				}
+			}
+			public class GreenTea implements ITea{
+				public void price(){
+					System.out.println("The GreenTea is $2");
+				}
+			}
+			public class Cocoa implements ITea{
+				public void price(){
+					System.out.println("The Cocoa is $2");
+				}
+			}
