@@ -1,1 +1,100 @@
+设计模式之一：单例模式
 
+优点： 
+    1.在单例模式中，活动的单例只有一个实例，对单例类的所有实例化得到的都是相同的一个实例。
+		这样就防止其它对象对自己的实例化，确保所有的对象都访问一个实例 
+    2.单例模式具有一定的伸缩性，类自己来控制实例化进程，类就在改变实例化进程上有相应的伸缩性。 
+    3.提供了对唯一实例的受控访问。 
+    4.由于在系统内存中只存在一个对象，因此可以 节约系统资源，当需要频繁创建和销毁的对象时单例模式无疑可以提高系统的性能。 
+    5.允许可变数目的实例。 
+    6.避免对共享资源的多重占用。 
+缺点： 
+    1.不适用于变化的对象，如果同一类型的对象总是要在不同的用例场景发生变化，单例就会引起数据的错误，不能保存彼此的状态。 
+    2.由于单利模式中没有抽象层，因此单例类的扩展有很大的困难。 
+    3.单例类的职责过重，在一定程度上违背了“单一职责原则”。 
+    4.滥用单例将带来一些负面问题，如为了节省资源将数据库连接池对象设计为的单例类，可能会导致共享连接池对象的程序过多而出现连接池溢出；
+		如果实例化的对象长时间不被利用，系统会认为是垃圾而被回收，这将导致对象状态的丢失。
+	5.单例滥用也可能会产生内存泄露。
+
+懒汉
+	public class LazySignton{
+		private static LazySignton lazySignton = null;
+		private LazySignton(){}
+		
+		public static LazySignton getInstance(){
+			if(lazySignton == null){
+				lazySignton = new LazySignton();
+			}
+			return lazySignton;
+		}
+	}
+	
+饿汉
+	public final class HurrySignton {
+		
+		private HurrySignton(){}
+		
+		private static HurrySignton hurrySignton= new HurrySignton();
+		
+		public static HurrySignton getInstance(){
+			return hurrySignton;
+		}
+	}
+线程安全
+	public class ThreadSingleton{
+	
+		private static ThreadSingleton threadSingleton = null;
+		
+		private Object obj = new Object();
+		
+		private ThreadSingleton(){}
+		
+		public static ThreadSingleton getInstance(){
+			/**
+			* 第一个if判断是：不必每次都进行线程同步
+			* 第二个if判断是：防止两个线程同时通过第一个if条件判断，多创建对象。
+			*/
+			if(threadSingleton == null){
+				sychronized(obj){
+					if(threadSingleton == null){
+						threadSingleton = new ThreadSingleton();
+					}
+				}
+			}
+			return threadSingleton;
+		}
+	}
+静态内部类：
+	
+	public Singleton_InnerClass{
+		private Singleton_InnerClass(){}
+		
+		public static Singleton_InnerClass getInstance(){
+			return SingletonHolder.singleton;
+		}
+		private static class SingletonHolder{
+			// 静态初始化器，由JVM来保证线程安全
+			private Singleton_InnerClass singleton = new Singleton_InnerClass();
+		}
+	}
+	第一次加载Singleton_InnerClass类时，并不会实例化singleton，只有第一次调用getInstance方法时，
+	Java虚拟机才会去加载SingletonHolder类，继而实例化singleton，这样延时实例化singleton，节省了内存，
+	并且也是线程安全的。这是推荐使用的一种单例模式。
+	
+	
+	
+以上四种方式，均可以通过反序列化创建新的对象。
+	
+	如何防止呢？
+	需要在上述类中添加：
+	private Object readResole() throws ObjectStreamException {
+		return singleton;
+    }
+枚举单例模式：
+	public enum EnumSingleton {
+		//枚举实例的创建是线程安全的，任何情况下都是单例（包括反序列化）
+		INSTANCE;
+		public void doSomething(){
+			System.out.println("枚举单例模式");
+		}
+	}
