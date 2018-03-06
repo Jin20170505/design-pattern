@@ -1,0 +1,16 @@
+开放-封闭原则(OCP  the Open Closed Principle):
+
+
+单一职责原则(SRP single responsibility principle)：又称单一功能原则
+
+
+迪米特原则(LoD):又称最少知识原则，
+
+
+里氏替换原则(Liskov Substitution Principle)
+
+
+依赖倒转原则(dependence inversion principle):
+
+
+合成/聚合复用原则（Composition Aggregation Reuse Principle）
