@@ -1,0 +1,131 @@
+设计模式之六：职责链模式(Chain Of Responsility)
+
+定义：
+	将能够处理同一类请求的对象连成一条链，使这些对象都有机会处理请求，所提交的请求沿着链传递。从而避免请求的发送者和接受者之间的耦合关系。
+	链上的对象逐个判断是否有能力处理该请求，如果能则就处理，如果不能，则传给链上的下一个对象。直到有一个对象处理它为止。
+
+涉及角色：
+	1.抽象处理者(Handler)角色：
+		定义出一个处理请求的接口。如果需要，接口可以定义 出一个方法以设定和返回对下家的引用。这个角色通常由一个Java抽象类或者Java接口实现。
+		Handler类的聚合关系给出了具体子类对下家的引用，抽象方法handleRequest()规范了子类处理请求的操作。
+	2.具体处理者(ConcreteHandler)角色：
+		具体处理者接到请求后，可以选择将请求处理掉，或者将请求传给下家。由于具体处理者持有对下家的引用，因此，如果需要，具体处理者可以访问下家。
+	
+现实场景：
+	1.请假审批
+	2.公文审批
+	3.接力赛跑
+
+Java中使用职责链模式的场景:
+	1.异常机制：try-catch catch对异常的捕获
+	2.Servlet开发中，过滤器的链式处理。
+
+好处：
+	1.接受者和发送者都没有对方的明确信息，且链中的对象也并不知道链的结构，结果是责任链可简化对象的相互连接，它们仅需保持一个指向其
+	后继者的引用，而不需要保持它所有的候选继承者，大大的降低了耦合度。
+	2.可以随时增加或者修改处理一个请求的结构，增加了给对象指派职责的灵活性.
+	
+注意：
+	一个请求极有可能传递到末端而得不到处理，或者因为没有正确的配置而得不到处理。
+code：
+	请假审批：1-3天 部门主管可以审批  4-7天 经理可以审批  7天以上  CEO批
+	// 请假请求
+	public class LeaveRequest{
+		private String empName;
+		private int days;
+		private String reason;
+		
+		public void setEmpName(String empName){
+			this.empName = empName;
+		}
+		public String getEmpName(){
+			return empName;
+		}
+		
+		public void setDays(int days){
+			this.days =days;
+		}
+		public int getDays(){
+			return days;
+		}
+		
+		public void setReason(String reason){
+			this.reason = reason;
+		}
+		public String getReason(){
+			return reason;
+		}
+	}
+	// 请假审批领导
+	public abstract class Leader {
+		protected String name;
+		protected Leader nextLeader;
+		
+		public Leader(String name){
+			this.name = name;
+		}
+		public void setNextLeader(Leader nextLeader){
+			this.nextLeader = nextLeader;
+		}
+		
+		public abstract void handlerRequest(LeaveRequest leaveRequest);
+	}
+	
+	// 主管
+	public class Charge extends Leader{
+		public Charge(String name){
+			super(name);
+		}
+		public void handlerRequest(LeaveRequest leaveRequest){
+			if(leaveRequest.getDays()<=3){
+				System.out.println("请假人:"+leaveRequest.getEmpName()+" 请假天数："+leaveRequest.getDays()+" 请假原因："+leaveRequest.getReason());
+				System.out.println("审批人："+this.name+" 同意请假。");
+			}else{
+				this.nextLeader.handlerRequest(leaveRequest);
+			}
+		}
+	}
+	// 经理
+	public class Manager extends Leader{
+		public Manager(String name){
+			super(name);
+		}
+		public void handlerRequest(LeaveRequest leaveRequest){
+			if(leaveRequest.getDays()<=3){
+				System.out.println("请假人:"+leaveRequest.getEmpName()+" 请假天数："+leaveRequest.getDays()+" 请假原因："+leaveRequest.getReason());
+				System.out.println("审批人："+this.name+" 同意请假。");
+			}else{
+				this.nextLeader.handlerRequest(leaveRequest);
+			}
+		}
+	}
+	// CEO
+	public class CEO extends Leader{
+		public CEO(String name){
+			super(name);
+		}
+		public void handlerRequest(LeaveRequest leaveRequest){
+			if(leaveRequest.getDays()<=3){
+				System.out.println("请假人:"+leaveRequest.getEmpName()+" 请假天数："+leaveRequest.getDays()+" 请假原因："+leaveRequest.getReason());
+				System.out.println("审批人："+this.name+" 同意请假。");
+			}else{
+				this.nextLeader.handlerRequest(leaveRequest);
+			}
+		}
+	}
+	// 测试
+	public class Client{
+		public static void main(String[] args){
+			LeaveRequest leaveRequest = new LeaveRequest();
+			leaveRequest.setEmpName("小路");
+			leaveRequest.setDays(6);
+			leaveRequest.setReason("结婚");
+			
+			Leader charge = new Charge("大胖"),
+				manager = new Manager("老艾"),
+				ceo = new CEO("老马");
+			charge.setNextLeader(manager);
+			manager.setNextLeader(ceo);
+			charge.handlerRequest(leaveRequest);
+		}
+	}
