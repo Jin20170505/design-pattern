@@ -1,0 +1,145 @@
+设计模式之七：代理模式（Proxy Pattern）
+
+定义:
+	为其他对象提供一种代理以控制对这个对象的访问。
+	在某些情况下，一个对象不适合或者不能直接引用另一个对象，
+	而代理对象可以在客户端和目标对象之间起到中介的作用。
+
+涉及的角色：
+	抽象角色：通过接口或抽象类声明真实角色实现的业务方法。
+	代理角色：实现抽象角色，是真实角色的代理，通过真实角色的业务逻辑方法来实现抽象方法，并可以附加自己的操作。
+	真实角色：实现抽象角色，定义真实角色所要实现的业务逻辑，供代理角色调用。
+
+结构：
+	一个是真正的你要访问的对象(目标类)，一个是代理对象,真正对象与代理
+　　对象实现同一个接口,先访问代理类再访问真正要访问的对象。
+
+代理分类：
+	1.静态代理：
+		在程序运行前就已经存在代理类的字节码文件，代理类和委托类的关系在运行前就确定了。
+	2.动态代理：也称JDK代理   
+		实现阶段不用关心代理类，而在运行阶段才指定哪一个对象。
+		需要用到java.lang.reflect.Proxy的静态方法：
+			static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces,InvocationHandler h )
+		JDK的动态代理有一个限制,就是使用动态代理的对象必须实现一个或多个接口.
+	3.Cglib代理：又称子类代理  大多数AOP框架使用此代理。
+		在内存中构建一个子类对象从而实现对目标对象功能的扩展.
+		Cglib子类代理实现方法:
+			1.需要引入cglib的jar文件,但是Spring的核心包中已经包括了Cglib功能,所以直接引入pring-core-3.2.5.jar即可.
+			2.引入功能包后,就可以在内存中动态构建子类
+			3.代理的类不能为final,否则报错
+			4.目标对象的方法如果为final/static,那么就不会被拦截,即不会执行目标对象额外的业务方法.
+好处：
+	1.职责清晰
+		真实的角色就是实现实际的业务逻辑，不用关心其他非本职责的事务，通过后期的代理完成一件完成事务，附带的结果就是编程简洁清晰。
+	2.代理对象可以在客户端和目标对象之间起到中介的作用，这样起到了中介的作用和保护了目标对象的作用。
+	3.高扩展性。
+
+示例
+	1.静态代理：模拟 一个男生喜欢一个女生，想给她送一个礼物，但又不好意思，只能求助女孩的闺蜜代送。
+	// 送花
+	public interface GiveFlower{
+		void giveFlower();
+	}
+	// 心意的女孩
+	public class Girl{
+		private String name;
+		public Girl(){
+			this.name = name;
+		}
+		public String getName(){
+			return name;
+		}
+	}
+	// 男孩
+	public class Body implements GiveFlower{
+		private Girl girl;
+		public Body(Girl girl){
+			this.girl = girl;
+		}
+		public void giveFlower(){
+			System.out.println(girl.getName()+",我喜欢你，送你一朵玫瑰花。---爱你的小亮");
+		}
+	}
+	// 女孩的闺蜜
+	public class ClosedFriend implements GiveFlower{
+		private Body body;
+		public ClosedFriend(Girl girl){
+			this.body = new Body(girl);
+		}
+		
+		public void giveFlower(){
+			body.giveFlower();
+		}
+	}
+	public class Client{
+		public static void main(String[] args){
+			Girl girl = new Girl("小红");
+			ClosedFriend friend = new ClosedFriend(girl);
+			friend.giveFlower();
+		}
+	}
+	
+	2.JDK代理
+	public class ProxyFactory{
+		private Object target;
+		public ProxyFactory(Object target){
+			this.target = target;
+		}
+		
+		public Object getProxyInstance(){
+			return Proxy.newProxyInstance(
+				target.getClass().getClassLoader(),
+				target.getClass().getInterfaces(),
+				new InvocationHandler(){
+					@Override
+					public Object invoke(Object proxy,Method method,Object[] args) throws Throwable{
+						String methodName = method.getName();
+						System.out.println(methodName+" start");
+						Object result = method.invoke(target,args);
+						System.out.println(methodName+ " end");
+						return result;
+					}
+				}
+			);
+		}
+	}
+	public class Client{
+		public static void main(String[] args){
+			Girl girl = new Girl("小红");
+			GiveFlower target = new Body(girl);
+			GiveFlower proxy = (GiveFlower)new ProxyFactory(target).getProxyInstance();
+			proxy.giveFlower();
+		}
+	}
+	
+3.Cglib代理
+	public class CglibProxyFactory implements MethodInterceptor{
+	private Object target;
+	public CglibProxyFactory(Object target) {
+		this.target = target;
+	}
+	// 目标对象
+	public Object getProxyInstance(){
+		//1.工具类
+        Enhancer en = new Enhancer();
+        //2.设置父类
+        en.setSuperclass(target.getClass());
+        //3.设置回调函数
+        en.setCallback(this);
+        //4.创建子类(代理对象)
+        return en.create();
+	}
+	@Override
+	public Object intercept(Object obj, Method method, Object[] args,
+			MethodProxy proxy) throws Throwable {
+		String methodName = method.getName();
+		
+		System.out.println(methodName+" start");
+		//执行目标对象的方法
+        Object returnValue = method.invoke(target, args);
+        
+        System.out.println(methodName+" end");
+        return returnValue;
+	}
+}
