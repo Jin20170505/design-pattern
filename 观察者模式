@@ -1,0 +1,97 @@
+设计模式之八：观察者模式（Observer）
+
+定义：
+	观察者模式（有时又被称为模型-视图（View）模式、源-收听者(Listener)模式或从属者模式）是软件设计模式的一种。
+	在此种模式中，一个目标物件管理所有相依于它的观察者物件，并且在它本身的状态改变时主动发出通知。
+	这通常透过呼叫各观察者所提供的方法来实现。此种模式通常被用来实现事件处理系统。
+
+	观察者设计模式定义了对象间的一种一对多的组合关系，
+	以便一个对象的状态发生变化时，所有依赖于它的对象都得到通知并自动刷新。
+	
+两个概念：
+	观察者	和    被观察者
+	观察者和被观察者之间存在“观察”的逻辑关联，当被观察者发生改变的时候，观察者就会观察到这样的变化，并且做出相应的响应。
+	
+	实现观察者模式的时候要注意，观察者和被观察对象之间的互动关系不能体现成类之间的直接调用，否则就将使观察者和被观察对象之间紧密的耦合起来，从根本上违反面向对象的设计的原则。无论是观察者“观察”观察对象，还是被观察者将自己的改变“通知”观察者，都不应该直接调用。
+
+实现形式：
+	最直观的形式是：
+		注册---通知---撤销注册  (发布订阅模式)
+	观察者：
+		（Observer）将自己注册到被观察对象（Subject）中，被观察对象将观察者存放在一个容器里。
+	被观察者：
+		被观察对象发生了某种变化，从容器中得到所有注册过的观察者，将变化通知观察者。
+	撤销观察：
+		观察者告诉被观察者要撤销观察，被观察者从容器中将观察者去除。
+		
+需要注意的地方：
+	观察者将自己注册到被观察者的容器中时，被观察者不应该过问观察者的具体类型，而是应该使用观察者的接口。
+	这样的优点是：假定程序中还有别的观察者，那么只要这个观察者也是相同的接口实现即可。
+	一个被观察者可以对应多个观察者，当被观察者发生变化的时候，他可以将消息一一通知给所有的观察者。
+	基于接口，而不是具体的实现——这一点为程序提供了更大的灵活性。
+	这点符合“里氏替换原则”
+
+模式涉及的角色：
+	抽象被观察者角色：也就是一个抽象主题，它把所有对观察者对象的引用保存在一个集合中，每个主题都可以有任意数量的观察者。抽象主题提供一个接口，可以增加和删除观察者角色。一般用一个抽象类和接口来实现。
+	抽象观察者角色：为所有的具体观察者定义一个接口，在得到主题通知时更新自己。
+	具体被观察者角色：也就是一个具体的主题，在集体主题的内部状态改变时，所有登记过的观察者发出通知。
+	具体观察者角色：实现抽象观察者角色所需要的更新接口，一边使本身的状态与制图的状态相协调。
+示例：
+	微信公众号：
+		有一个公众号，不定时推送消息，关注公众号的人可以收到消息，而取消关注后收不到消息。
+	code:
+	// 被观察者接口
+	public interface IObserverable{
+		void registerObserver(Observer observer);
+		void removeObserver(Observer observer);
+		void notifyObservers();
+	}
+	// 观察者接口
+	public interface Observer{
+		// 当接收到被观察者的通知时，此方法被回调。
+		void update(String message);
+	}
+	
+	// 微信公众号(被观察者)
+	public class WechatServer implements IObserverable{
+		private List<Observer> list;
+		public String message;
+		public WechatServer(){
+			list = new ArrayList<Observer>();
+		}
+		@override
+		public void registerObserver(Observer observer){
+			list.add(observer);
+		}
+		@override
+		public void removeObserver(Observer observer){
+			list.delete(observer);
+		}
+		@override
+		public void notifyObservers(){
+			for(Observer observer:list){
+				observer.update(message);
+			}
+		}
+		public void pulishMessage(String message){
+			this.message = message;
+			System.out.println("微信公众号更新消息："+message);
+			notifyObservers();
+		}
+	}
+	// 微信用户
+	public class User implements Observer{
+		private String name;
+		private String message;
+		public User(String name){
+			this.name = name;
+		}
+		@override
+		public void update(String message){
+			this.message = message;
+			read();
+		}
+		private void read(){
+			System.out.println(name+" 收到消息："+message);
+		}
+	}
