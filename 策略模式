@@ -1,0 +1,86 @@
+设计模式之九：策略模式
+定义：
+	英文：
+		The Strategy Pattern defines a family of algorithms,encapsulates each one,and makes them interchangeable.
+		Strategy lets the algorithm vary independently from clients that use it.
+	翻译：
+		策略模式定义了一系列的算法，并将每个算法封装起来，而且是他们可以相互替换。策略模式
+		使得算法可以独立于使用他的客户端而独立变化。
+
+一句话概括：
+	准备一组算法，并将每个算法封装起来，使它们可以互换。
+组成：
+	抽象策略角色:策略类，一个接口或一个抽象类。
+	具体策略角色:包装了具体的算法和行为。
+	环境角色:持有一个策略类的引用，最终给客户端提供调用。
+
+示例：
+	商城购物消费打折活动：
+		1.低于100 无优惠
+		2.高于100 低于200 优惠20元
+		3.高于200 低于500 打8折
+		4.高于500 		  打7.5折
+		
+	code:
+	// 抽象策略类
+	public  interface PayStrategy{
+		double pay(double money);
+	}
+	
+	// 减免20
+	public class Tweenty implements PayStrategy{
+		public double pay(double money) {
+			System.out.println("减免20");
+			return money-20;
+		}
+	}
+	
+	//八折优惠
+	public class EightDiscount implements PayStrategy{
+		public double pay(double money) {
+			System.out.println("八折优惠");
+			return money *0.8;
+		}
+	}
+	
+	// 7.5折优惠
+	public class Discount_75 implements PayStrategy{
+		public double pay(double money) {
+			System.out.println("7.5折优惠");
+			return money*0.75;
+		}
+	}
+	// 环境角色
+	public class Price{
+		private PayStrategy payStrategy;
+		public Price(PayStrategy payStrategy){
+			this.payStrategy = payStrategy;
+		}
+		public double qute(double money){
+			payStrategy.pay(money);
+		}
+	}
+	
+	// 客户端
+	public class Client{
+		public static void main(String[] args){
+			PayStrategy payStrategy = new Discount_75();
+			Price price = new Price(payStrategy);
+			double qute = price.qute(600);
+			System.out.println("应付:"+qute);
+		}
+	}
+	
+策略模式的注意点
+	1.重心：
+		不是如何实现算法，而是如何组织、调用这些算法，从而使程序结构更加灵活，具有更好的维护性和扩展性。
+	2.策略算法的平等性，即策略算法是同行为的不同实现。
+	
+优点：
+	1.策略模式提供了管理相关的算法族的办法，恰当的使用继承可以将共有的代码放到父类中。从而避免代码的重复。
+	2.可以避免多重的if-else条件语句（不易维护）。
+缺点：
+	1.客户端必须要知道所有的策略类，并自行决定使用哪一个策略类。
+	2.如果备选的策略很多的话，那么对象的数目就会很多。
+	
+注意和工厂模式区分。
