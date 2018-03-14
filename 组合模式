@@ -1,0 +1,139 @@
+设计模式之十一：组合模式（Composite Pattern）
+定义：
+	将对象组成树形结构以表示“部分-整体”的层次结构。组合模式使得用户对单个对象和组合对象的使用具有一致性。
+	有时也称为部分-整体模式。可以使用此模式优化处理递归或分级数据结构。如计算机文件系统。
+
+	组合模式可以让客户端像修改配置文件一样简单的完成本来需要流程控制语句来完成的功能。
+	
+	如果想要创建层次结构，并可以在其中以相同的方式对待所有元素。那么组合模式就是理想的选择。
+	
+好处：
+	组合模式让用户可以一致的使用组合结构和单一对象。而不用写判断语句。
+
+场景：
+	功能或结构相似的系统
+	如：文件系统
+示例：
+	总公司-分公司
+code:
+	public abstract class ICompany{
+		protected String name;
+		public ICompany(String name){
+			this.name = name;
+		}
+		
+		public abstract void add(ICompany company);
+		public abstract void remove(ICompany company);
+		public abstract void show(int deepth);
+		public abstract void duty();
+	}
+	// 具体的公司
+	public class ConcreteCompany extends ICompany{
+		private List<ICompany> companys = null;
+		public ConcreteCompany(String name){
+			super(name);
+			companys = new ArrayList<ICompany>();
+		}
+		
+		public void add(ICompany company){
+			companys.add(company);
+		}
+		public void remove(ICompany company){
+			companys.remove(company);
+		}
+		
+		public void show(int deepth){
+			String s = "";
+			for (int i = 0; i < depth; i++) {
+				s+="-";
+			}
+			System.out.println(s+name);
+			for(ICompany company:companys){
+				company.show(deepth+2);
+			}
+		}
+		
+		public void duty(){
+			for(ICompany company:companys){
+				company.duty();
+			}
+		}
+	}
+	
+	// 人力资源部
+	public class HRDepartment extends ICompany{
+		public HRDepartment(String name){
+			super(name);
+		}
+		
+		public void add(ICompany company){
+			System.out.println("此为叶节点，不可加入");
+		}
+		public void remove(ICompany company){
+			System.out.println("此为叶节点，无元素可删除");
+		}
+		
+		public void show(int deepth){
+			String s = "";
+			for (int i = 0; i < depth; i++) {
+				s+="-";
+			}
+			System.out.println(s+name);
+		}
+		
+		public void duty(){
+			System.out.println("招贤纳士，人际关系调节");
+		}
+	}
+	
+	// 财务部
+	public class FinanceDepartment extends ICompany{
+		public FinanceDepartment(String name){
+			super(name);
+		}
+		
+		public void add(ICompany company){
+			System.out.println("此为叶节点，不可加入");
+		}
+		public void remove(ICompany company){
+			System.out.println("此为叶节点，无元素可删除");
+		}
+		
+		public void show(int deepth){
+			String s = "";
+			for (int i = 0; i < depth; i++) {
+				s+="-";
+			}
+			System.out.println(s+name);
+		}
+		
+		public void duty(){
+			System.out.println("财政收入统计。");
+		}
+	}
+	
+	public class Client {
+		public static void main(String[] args) {
+			ConcreteCompany cc = new ConcreteCompany("xxxx北京总部");
+			cc.add(new HRDepartment("总部人事部"));
+			cc.add(new FinanceDepartment("总部财务部"));
+			
+			ConcreteCompany cc1  = new ConcreteCompany("华东分公司");
+			cc1.add(new HRDepartment("华东人事部"));
+			cc1.add(new FinanceDepartment("华东财务部"));
+			cc.add(cc1);
+			ConcreteCompany cc2  = new ConcreteCompany("杭州办事处");
+			cc2.add(new HRDepartment("杭州人事部"));
+			cc2.add(new FinanceDepartment("杭州财务部"));
+			cc1.add(cc2);
+			
+			ConcreteCompany cc3 = new ConcreteCompany("华中分公司");
+			cc3.add(new HRDepartment("华中人事部"));
+			cc3.add(new FinanceDepartment("华中财务部"));
+			cc.add(cc3);
+			System.out.println("-------公司结构---------");
+			cc.show(1);
+			System.out.println("-----职责----------");
+			cc.duty();
+		}
+	}
